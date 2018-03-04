@@ -71,7 +71,9 @@ class Repl:
 
     def _handle_user_input(self, line: str):
         line = line.strip()
-        for command, (handler, _, _) in self._commands.items():
+        #  NOTE: Since Python is a completely wrecked piece of crap, you should unpack the command value
+        # exactly in this way. The code (handler, _, _) randomly causes ValueError in Python 3.5.2
+        for command, (handler, *_) in self._commands.items():
             if line.startswith(command):
                 args = line[len(command):].strip()
                 return handler(args)
