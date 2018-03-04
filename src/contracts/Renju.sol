@@ -128,7 +128,8 @@ contract Renju {
         doMakeMove(proposedMove);
     }
 
-    function pass() public isSendersTurn() {
+    // do not name this method 'pass' since it's python keyword
+    function passTurn() public isSendersTurn() {
         require(lastTurnNumber_ >= 6);
         switchNextTurnPlayer();
     }

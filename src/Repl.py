@@ -1,10 +1,11 @@
-# from src import EthereumClient
+from src import EthereumClient
 
 
 class Repl:
 
-    def __init__(self, eth_client) -> None:
+    def __init__(self, eth_client: EthereumClient) -> None:
         self._eth_client = eth_client
+        self._contract = None
 
         # constants:
         position_format_description = 'The position is specified as <COLUMN><LINE>, e.g. H8.'
@@ -16,7 +17,7 @@ class Repl:
                 'create a new game and get its address to share with a friend.'
             ),
             'join game': (
-                self._on_join_hame,
+                self._on_join_game,
                 '<GAME ADDRESS>',
                 'join to an existing game at the specific address to start playing.'
             ),
@@ -52,7 +53,7 @@ class Repl:
             ),
             'refresh': (
                 self._on_refresh,
-                ''
+                '',
                 'load the actual state from the blockchain and print it out.'
             ),  # update the state and print it
             'help': (
@@ -63,6 +64,12 @@ class Repl:
         }
         self._column_letters = dict(zip((chr(c) for c in range(ord('A'), ord('O') + 1)), range(15)))
 
+    def __getattribute__(self, name: str):
+        attr = object.__getattribute__(self, name)
+        if name == "_contract" and attr is None:
+            raise ValueError("You are not connected to any game")
+        return attr
+
     def handle_user_input(self, line: str):
         try:
             self._handle_user_input(line)
@@ -71,8 +78,6 @@ class Repl:
 
     def _handle_user_input(self, line: str):
         line = line.strip()
-        #  NOTE: Since Python is a completely wrecked piece of crap, you should unpack the command value
-        # exactly in this way. The code (handler, _, _) randomly causes ValueError in Python 3.5.2
         for command, (handler, *_) in self._commands.items():
             if line.startswith(command):
                 args = line[len(command):].strip()
@@ -81,18 +86,27 @@ class Repl:
         self._on_help('')
 
     def _on_create_game(self, _: str):
-        pass
+        addr, contract = self._eth_client.upload_new_erenju_contract()
+        print(("Successfully created a game at address {}. Now you can share this "
+              "address with your friend to start playing with him.").format(addr))
+        self._contract = contract
 
-    def _on_join_hame(self, game_address: str):
-        pass
+    def _on_join_game(self, game_address: str):
+        self._contract = self._eth_client.contract_by_address(game_address)
+        self._contract.joinTheGame()
+        print("Successfully joined to the game.")
+        self._print_board()
 
     def _on_resume_game(self, game_address: str):
-        pass
+        self._contract = self._eth_client.contract_by_address(game_address)
+        #  TODO: check that I'm participant
+        print("Successfully connected to the game.")
 
     def _on_move(self, move: str):
         line, column = self._parse_move(move)
-        # TODO: submit lines to contract
-        pass
+        self._contract.makeMove(line, column)
+        print("Done.")
+        self._print_kboard()
 
     def _on_pick_color(self, color: str):
         color_is_black = None
@@ -102,24 +116,26 @@ class Repl:
             color_is_black = False
         else:
             raise ValueError("Malformed color {}", color)
-        # TODO: submit to contract
-        pass
+        self._contract.pickColor(color_is_black)
+        print("Done.")
 
     def _on_suggest(self, options: str):
         (line1, column1), (line2, column2) = \
             map(self._parse_move, map(str.strip, options.split(' ')))
-        print(line1, column1, line2, column2)
-        # TODO: submit to contract
+        self._contract.suggestFifthMove(line1, column1, line2, column2)
+        print("Done.")
 
     def _on_select(self, move: str):
         line, column = self._parse_move(move)
-        # TODO: submit to the contract
-        pass
+        self._contract.selectFifthMove(line, column)
+        print("Done.")
+        self._print_board()
 
     def _on_pass(self, _: str):
-        pass
+        self._contract.passTurn()
 
     def _on_refresh(self, _: str):
+        # TODO: implement
         pass
 
     def _on_help(self, _: str):
@@ -137,6 +153,9 @@ class Repl:
         if not 1 <= line <= 15:
             raise ValueError("Invalid MOVE format: unexpected line index {}. It is required to be in range [1, 15]")
         return (15 - line), column
+
+    def _print_board(self):
+        pass # TODO: implement
 
 if __name__ == "__main__":
     Repl(None).handle_user_input("suggest B8 B5")
