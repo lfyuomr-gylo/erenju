@@ -165,6 +165,26 @@ contract Renju {
         }
     }
 
+    function cellAt(uint8 line, uint8 column) public constant returns (uint8) {
+        Cell cell = board_[line][column];
+        if (cell == Cell.EMPTY) {
+            return 0;
+        } else if (cell == Cell.BLACK) {
+            return 1;
+        } else if (cell == Cell.WHITE) {
+            return 2;
+        } else {
+            assert(false);
+        }
+    }
+
+    function isMyTurn() public constant returns (bool) {
+        return (gameStatus_ == GameStatus.IN_PROGRESS) && (
+            (nextTurnPlayer_ == Player.BLACK  && msg.sender == blackPlayer_) ||
+            (nextTurnPlayer_ == Player.WHITE && msg.sender == whitePlayer_)
+        );
+    }
+
     // --------------------- modifiers
 
     modifier isSendersTurn() {
@@ -177,12 +197,6 @@ contract Renju {
     }
 
     // --------------------------- internal functions
-
-    function isFinished() internal constant returns(bool) {
-        return (gameStatus_ == GameStatus.FIRST_PLAYER_WON)  ||
-               (gameStatus_ == GameStatus.SECOND_PLAYER_WON) ||
-               (gameStatus_ == GameStatus.DRAW);
-    }
 
     function doMakeMove(Move move) internal {
         // TODO: убедиться в том, что я не перепутал строку и столбец

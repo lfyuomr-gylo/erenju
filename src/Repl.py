@@ -135,8 +135,7 @@ class Repl:
         self._contract.passTurn()
 
     def _on_refresh(self, _: str):
-        # TODO: implement
-        pass
+        self._print_board()
 
     def _on_help(self, _: str):
         print("The following commands are available:")
@@ -155,7 +154,29 @@ class Repl:
         return (15 - line), column
 
     def _print_board(self):
-        pass # TODO: implement
+        my_turn = self._contract.isMyTurn()
+        if my_turn:
+            print("It's your turn")
+        else:
+            print("Waiting for your opponent's turn")
+        print()
+        print(" ".join(self._column_letters.keys())) # columns header
+        for line in range(15, 0, -1):
+            print(line, end=' ')
+            for column in range(15):
+                cell_number = self._contract.cellAt(15 - line, column)
+                cell_letter = None
+                if cell_number == 0:
+                    cell_letter = 'O'
+                elif cell_number == 1:
+                    cell_letter = 'B'
+                elif cell_number == 2:
+                    cell_letter = 'W'
+                else:
+                    raise ValueError("Unexpected cell value got from the contract: {}".format(cell_number))
+                print(cell_letter, end=' ')
+            print()
+
 
 if __name__ == "__main__":
     Repl(None).handle_user_input("suggest B8 B5")
