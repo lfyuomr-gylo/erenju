@@ -1,4 +1,4 @@
-from src import EthereumClient
+from erenju import EthereumClient
 
 
 class Repl:
