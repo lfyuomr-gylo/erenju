@@ -46,8 +46,6 @@ contract Renju {
 
     GameStatus gameStatus_ = GameStatus.NOT_STARTED;
 
-    uint8 constant BOARD_SIZE = 15;
-
     Cell[15][15] board_;
 
     // ------------------ end of field declarations
@@ -55,12 +53,12 @@ contract Renju {
     // fuck you guys who decided that to use the contract name for constructor declaration is a good idea in 2014...
     function Renju() public {
         firstPlayer_ = msg.sender;
-        for (uint8 i = 0; i < BOARD_SIZE; i++) {
-            for (uint8 j = 0; j < BOARD_SIZE; j++) {
+        for (uint8 i = 0; i < 15; i++) {
+            for (uint8 j = 0; j < 15; j++) {
                 board_[i][j] = Cell.EMPTY;
             }
         }
-        // TODO: сделать первый ход в середине(первым игроком)
+        board_[7][7] = FIRST_PLAYER_OCCUPIED; // make the very first move
     }
 
     // ------------ actions
@@ -74,7 +72,17 @@ contract Renju {
     }
 
     function makeMove(uint8 line, uint8 column) public isSendersTurn()  {
-        // TODO: implement
+        Move move = Move(line, column);
+        if (lastTurnNumber_ == 1) {
+            require(6 <= move.row    && move.row    <= 8);
+            require(8 <= move.column && move.column <= 8);
+        } else if (lastTurnNumber == 2) {
+            require(5 <= move.row    && move.row    <= 9);
+            require(5 <= move.column && move.column <= 9);
+        } else {
+            require(lastTurnNumber_ >= 5); // the fifth turn is performed via a separate function
+        }
+        doMakeMove(move);
     }
 
     function pickColor(bool whiteColorIsChosen) public isSendersTurn() {
@@ -144,4 +152,23 @@ contract Renju {
                (gameStatus_ == GameStatus.DRAW);
     }
 
+    function doMakeMove(Move move) internal {
+        // TODO: убедиться в том, что я не перепутал строку и столбец
+        require(board_[move.row][move.column] == Cell.EMPTY);
+        if (nextTurnPlayer_ == Player.FIRST) {
+            board_[move.row][move.column] = Cell.OCCUPIED_BY_FIRST_PLAYER;
+        } else {
+            board_[move.row][move.column] = Cell.OCCUPIED_BY_SECOND_PLAYER;
+        }
+        switchNextTurnPlayer();
+        lastTurnNumber_++;
+    }
+
+    function switchNextTurnPlayer() internal {
+        if (nextTurnPlayer_ == Player.FIRST) {
+            nextTurnPlayer_ = Player.SECOND;
+        } else {
+            nextTurnPlayer_ = Player.FIRST;
+        }
+    }
 }
