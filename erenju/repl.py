@@ -106,7 +106,7 @@ class Repl:
         line, column = self._parse_move(move)
         self._contract.makeMove(line, column)
         print("Done.")
-        self._print_kboard()
+        self._print_board()
 
     def _on_pick_color(self, color: str):
         color_is_black = None
@@ -154,17 +154,17 @@ class Repl:
         return (15 - line), column
 
     def _print_board(self):
-        my_turn = self._contract.isMyTurn()
+        my_turn = self._contract.locally().isMyTurn()
         if my_turn:
             print("It's your turn")
         else:
             print("Waiting for your opponent's turn")
         print()
-        print(" ".join(self._column_letters.keys())) # columns header
+        print(" " * 3 + " ".join(sorted(self._column_letters.keys()))) # columns header
         for line in range(15, 0, -1):
-            print(line, end=' ')
+            print(line, end=' ' if line >= 10 else '  ') # print two spaces to align the first column
             for column in range(15):
-                cell_number = self._contract.cellAt(15 - line, column)
+                cell_number = self._contract.locally().cellAt(15 - line, column)
                 cell_letter = None
                 if cell_number == 0:
                     cell_letter = 'O'
