@@ -43,7 +43,7 @@ class Repl:
             ),
             'select': (
                 self._on_select,
-                '<MOVE>'
+                '<MOVE>',
                 'make the fifth move from. Note that the MOVE should be one of the suggested ones.'
             ),  # one of the suggested fifth move options
             'pass': (
