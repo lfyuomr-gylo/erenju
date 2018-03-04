@@ -80,13 +80,17 @@ contract Renju {
         Move memory move = Move(line, column);
         if (lastTurnNumber_ == 1) {
             require(6 <= move.row    && move.row    <= 8);
-            require(8 <= move.column && move.column <= 8);
-        } else if (lastTurnNumber_ == 2) {
+            require(6 <= move.column && move.column <= 8);
+        }
+        if (lastTurnNumber_ == 2) {
             require(5 <= move.row    && move.row    <= 9);
             require(5 <= move.column && move.column <= 9);
-        } else {
-            require(lastTurnNumber_ >= 5); // the fifth turn is performed via a separate function
         }
+        if (lastTurnNumber_ >= 3) {
+            require(isColorPickFinished_);
+        }
+        require(lastTurnNumber_ != 4); // the fifth turn is performed via a separate function
+
         doMakeMove(move);
     }
 
