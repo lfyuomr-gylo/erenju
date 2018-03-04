@@ -10,8 +10,8 @@ contract Renju {
     enum Player { BLACK, WHITE }
 
     struct Move {
-        int8 row;
-        int8 column;
+        uint8 row;
+        uint8 column;
     }
 
     struct FifthMoveProposal {
@@ -77,11 +77,11 @@ contract Renju {
     }
 
     function makeMove(uint8 line, uint8 column) public isSendersTurn()  {
-        Move move = Move(line, column);
+        Move memory move = Move(line, column);
         if (lastTurnNumber_ == 1) {
             require(6 <= move.row    && move.row    <= 8);
             require(8 <= move.column && move.column <= 8);
-        } else if (lastTurnNumber == 2) {
+        } else if (lastTurnNumber_ == 2) {
             require(5 <= move.row    && move.row    <= 9);
             require(5 <= move.column && move.column <= 9);
         } else {
@@ -119,7 +119,7 @@ contract Renju {
         require(lastTurnNumber_ == 4);
         require(fifthMoveProposal_.isProvided && !fifthMoveProposal_.isSelected);
 
-        Move proposedMove = requireIsProposedForFifthMove(row, column);
+        Move memory proposedMove = requireIsProposedForFifthMove(row, column);
         fifthMoveProposal_.isSelected = true;
         doMakeMove(proposedMove);
     }
@@ -191,12 +191,12 @@ contract Renju {
         lastTurnNumber_++;
     }
 
-    function requireMoveIsPossible(Move move) internal returns(Move) {
+    function requireMoveIsPossible(Move move) internal view returns(Move) {
         require(board_[move.row][move.column] == Cell.EMPTY);
         return move;
     }
 
-    function requireIsProposedForFifthMove(uint8 row, uint8 column) internal pure returns(Move) {
+    function requireIsProposedForFifthMove(uint8 row, uint8 column) internal view returns(Move) {
         require(
             (row == fifthMoveProposal_.options[0].row && column == fifthMoveProposal_.options[0].column) ||
             (row == fifthMoveProposal_.options[1].row && column == fifthMoveProposal_.options[1].column)
