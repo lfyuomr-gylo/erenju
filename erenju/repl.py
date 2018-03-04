@@ -1,9 +1,9 @@
-from erenju import EthereumClient
+from erenju import ethereum_client
 
 
 class Repl:
 
-    def __init__(self, eth_client: EthereumClient) -> None:
+    def __init__(self, eth_client: ethereum_client) -> None:
         self._eth_client = eth_client
         self._contract = None
 

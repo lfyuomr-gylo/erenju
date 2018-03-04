@@ -44,7 +44,7 @@ class EthereumClient:
 
     def _load_contract_interface(self):
         contract_source_code = ''
-        with open("contracts/Renju.sol") as f:
+        with open("erenju/contracts/Renju.sol") as f:
             contract_source_code = f.read()
         compiled_sol = compile_source(contract_source_code)
         return compiled_sol['<stdin>:Renju']
