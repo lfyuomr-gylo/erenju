@@ -206,6 +206,15 @@ contract Renju {
         }
     }
 
+    function fifthTurnSuggestion() public constant returns (uint8[4]) {
+        return [
+            fifthMoveProposal_.options[0].row,
+            fifthMoveProposal_.options[0].column,
+            fifthMoveProposal_.options[1].row,
+            fifthMoveProposal_.options[1].column
+        ];
+    }
+
     function isMyTurn() public constant returns (bool) {
         return (gameStatus_ == GameStatus.IN_PROGRESS) && (
             (nextTurnPlayer_ == Player.BLACK  && msg.sender == blackPlayer_) ||

@@ -187,6 +187,10 @@ class Repl:
             print("Waiting for the opponent to suggest the fifth move options")
         elif current_turn == 5:
             print("It's your turn to select the fifth move")
+            line1, column1, line2, column2 = self._contract.call().fifthTurnSuggestion()
+            move1 = self.move_str(line1, column1)
+            move2 = self.move_str(line2, column2)
+            print("Available moves: {} {}".format(move1, move2))
         elif current_turn == 6:
             print("Waiting for the opponent to select the fifth move")
         elif current_turn == 7:
@@ -195,6 +199,9 @@ class Repl:
             print("Waiting for the opponent's move")
         else:
             raise ValueError("Unexpected return value of 'currentTurn' contract method: {}".format(current_turn))
+
+    def move_str(self, line, column):
+        return chr(ord('A') + column) + str(15 - line)
 
 
 if __name__ == "__main__":
