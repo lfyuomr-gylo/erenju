@@ -178,6 +178,34 @@ contract Renju {
         }
     }
 
+    function currentTurn() public constant returns (uint8) {
+        if (gameStatus_ != GameStatus.IN_PROGRESS) {
+            return 0; // game is not in progress
+        } else if (lastTurnNumber_ == 3 && !isColorPickFinished_) {
+            if (isMyTurn()) {
+                return 1; // waiting for your color pick
+            } else {
+                return 2; // waiting for opponents color pick
+            }
+        } else if (lastTurnNumber_ == 4 && !fifthMoveProposal_.isProvided) {
+            if (isMyTurn()) {
+                return 3; // waiting for your fifth turn proposal
+            } else {
+                return 4; // waiting for opponent's fifth turn proposal
+            }
+        } else if (lastTurnNumber_ == 4 && !fifthMoveProposal_.isSelected) {
+            if (isMyTurn()) {
+                return 5; // waiting for you to select fifth move
+            } else {
+                return 6; // waiting for opponent to select fifth move
+            }
+        } else if (isMyTurn()) {
+            return 7; // waiting for your regular turn
+        } else {
+            return 8; // waiting for opponent's regular turn.
+        }
+    }
+
     function isMyTurn() public constant returns (bool) {
         return (gameStatus_ == GameStatus.IN_PROGRESS) && (
             (nextTurnPlayer_ == Player.BLACK  && msg.sender == blackPlayer_) ||

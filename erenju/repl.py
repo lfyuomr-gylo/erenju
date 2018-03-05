@@ -154,11 +154,7 @@ class Repl:
         return (15 - line), column
 
     def _print_board(self):
-        my_turn = self._contract.call().isMyTurn()
-        if my_turn:
-            print("It's your turn")
-        else:
-            print("Waiting for your opponent's turn")
+        self._print_current_turn()
         print()
         print(" " * 3 + " ".join(sorted(self._column_letters.keys()))) # columns header
         for line in range(15, 0, -1):
@@ -176,6 +172,29 @@ class Repl:
                     raise ValueError("Unexpected cell value got from the contract: {}".format(cell_number))
                 print(cell_letter, end=' ')
             print()
+
+    def _print_current_turn(self):
+        current_turn = self._contract.call().currentTurn()
+        if current_turn == 0:
+            print("Game is not in progress")
+        elif current_turn == 1:
+            print("It's your turn to pick the color!")
+        elif current_turn == 2:
+            print("Waiting for the opponent to pick color")
+        elif current_turn == 3:
+            print("It's your turn to suggest options for fifth move")
+        elif current_turn == 4:
+            print("Waiting for the opponent to suggest the fifth move options")
+        elif current_turn == 5:
+            print("It's your turn to select the fifth move")
+        elif current_turn == 6:
+            print("Waiting for the opponent to select the fifth move")
+        elif current_turn == 7:
+            print("It's your turn to move!")
+        elif current_turn == 8:
+            print("Waiting for the opponent's move")
+        else:
+            raise ValueError("Unexpected return value of 'currentTurn' contract method: {}".format(current_turn))
 
 
 if __name__ == "__main__":
