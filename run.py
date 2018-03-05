@@ -16,7 +16,7 @@ if __name__ == "__main__":
     eth_client = EthereumClient(args.ethereum_url, args.address)
     repl = Repl(eth_client)
 
-    while True: # in debugger iteration over sys.stdin throws exception =(
-        line = input()
-    # for line in sys.stdin
+    # while True: # in debugger iteration over sys.stdin throws exception =(
+    #     line = input()
+    for line in sys.stdin:
         repl.handle_user_input(line)

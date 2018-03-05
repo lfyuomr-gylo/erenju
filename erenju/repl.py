@@ -174,6 +174,8 @@ class Repl:
             print()
 
     def _print_current_turn(self):
+        if self._print_if_game_finished_and_return_true():
+            return
         current_turn = self._contract.call().currentTurn()
         if current_turn == 0:
             print("Game is not in progress")
@@ -199,6 +201,20 @@ class Repl:
             print("Waiting for the opponent's move")
         else:
             raise ValueError("Unexpected return value of 'currentTurn' contract method: {}".format(current_turn))
+
+    def _print_if_game_finished_and_return_true(self):
+        game_status = self._contract.call().gameStatus()
+        if game_status == 2:
+            print("Congratulations! You have won!")
+            return True
+        elif game_status == 3:
+            print("Unfortunately, you have lost. Try again!")
+            return True
+        elif game_status == 4:
+            print("The game finished with draw. Try again.")
+            return True
+        else:
+            return False
 
     def move_str(self, line, column):
         return chr(ord('A') + column) + str(15 - line)
