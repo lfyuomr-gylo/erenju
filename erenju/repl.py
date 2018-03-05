@@ -143,12 +143,12 @@ class Repl:
             print("  * {} {}  -- {}".format(command, args, description))
 
     def _parse_move(self, move: str) -> (int, int):
-        if len(move) != 2:
-            raise ValueError("Invalid MOVE format. It should be 2-characters long")
+        if len(move) not in (2, 3) :
+            raise ValueError("Invalid MOVE format. It should be 2- or 3-characters long")
         column = self._column_letters.get(move[0].upper(), None)
         if column is None:
             raise ValueError("Invalid MOVE format: unexpected column identifier: {}".format(move[0]))
-        line = int(move[1])
+        line = int(move[1:])
         if not 1 <= line <= 15:
             raise ValueError("Invalid MOVE format: unexpected line index {}. It is required to be in range [1, 15]")
         return (15 - line), column

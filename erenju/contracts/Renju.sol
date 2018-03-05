@@ -25,7 +25,7 @@ contract Renju {
 
     enum Cell { EMPTY, BLACK, WHITE }
 
-    enum GameStatus { NOT_STARTED, IN_PROGRESS, FIRST_PLAYER_WON, SECOND_PLAYER_WON, DRAW }
+    enum GameStatus { NOT_STARTED, IN_PROGRESS, BLACK_PLAYER_WON, WHITE_PLAYER_WON, DRAW }
 
     // ----------------- end of enum/struct declarations
 
@@ -42,15 +42,15 @@ contract Renju {
     //
     // the very first move is performed implicitly by the first player at the moment
     // of the contract creation
-    Player nextTurnPlayer_ = Player.WHITE;
+    Player public nextTurnPlayer_ = Player.WHITE;
 
-    bool isColorPickFinished_ = false;
+    bool public isColorPickFinished_ = false;
 
-    FifthMoveProposal fifthMoveProposal_;
+    FifthMoveProposal public fifthMoveProposal_;
 
-    GameStatus gameStatus_ = GameStatus.NOT_STARTED;
+    GameStatus public gameStatus_ = GameStatus.NOT_STARTED;
 
-    Cell[15][15] board_;
+    Cell[15][15] public board_;
 
     // ------------------ end of field declarations
 
@@ -125,6 +125,7 @@ contract Renju {
 
         Move memory proposedMove = requireIsProposedForFifthMove(row, column);
         fifthMoveProposal_.isSelected = true;
+        switchNextTurnPlayer();  // switch back since it's switched once in `doMakeMove` implicitly
         doMakeMove(proposedMove);
     }
 
@@ -144,7 +145,7 @@ contract Renju {
     //     * 4 --- the game finished with draw
     //     * 5 --- sender is not a participant of the game
     function gameStatus() public constant returns (uint8) {
-        // FIRST_PLAYER_WON, SECOND_PLAYER_WON, DRAW
+        // BLACK_PLAYER_WON, WHITE_PLAYER_WON, DRAW
         address sender = msg.sender;
         if (sender != blackPlayer_ && sender != whitePlayer_) {
             return 5;
@@ -153,12 +154,12 @@ contract Renju {
         } else if (gameStatus_ == GameStatus.IN_PROGRESS) {
             return 1;
         } else if (
-                (sender == blackPlayer_  && gameStatus_ == GameStatus.FIRST_PLAYER_WON) ||
-                (sender == whitePlayer_ && gameStatus_ == GameStatus.SECOND_PLAYER_WON)) {
+                (sender == blackPlayer_  && gameStatus_ == GameStatus.BLACK_PLAYER_WON) ||
+                (sender == whitePlayer_ && gameStatus_ == GameStatus.WHITE_PLAYER_WON)) {
             return 2;
         } else if (
-                (sender == blackPlayer_  && gameStatus_ == GameStatus.SECOND_PLAYER_WON) ||
-                (sender == whitePlayer_ && gameStatus_ == GameStatus.FIRST_PLAYER_WON)) {
+                (sender == blackPlayer_  && gameStatus_ == GameStatus.WHITE_PLAYER_WON) ||
+                (sender == whitePlayer_ && gameStatus_ == GameStatus.BLACK_PLAYER_WON)) {
             return 3;
         } else if (gameStatus_ == GameStatus.DRAW) {
             return 4;
@@ -245,6 +246,7 @@ contract Renju {
         }
         switchNextTurnPlayer();
         lastTurnNumber_++;
+        checkForWin(move);
     }
 
     function requireMoveIsPossible(Move move) internal view returns(Move) {
@@ -266,5 +268,42 @@ contract Renju {
         } else {
             nextTurnPlayer_ = Player.BLACK;
         }
+    }
+    
+    function checkForWin(Move lastMove) internal {
+        if (!isTurnWon(lastMove)) {
+            if (lastTurnNumber_ == 225) {
+                gameStatus_ = GameStatus.DRAW;
+            }
+        } else {
+            if (msg.sender == blackPlayer_) {
+                gameStatus_ = GameStatus.BLACK_PLAYER_WON;
+            } else {
+                gameStatus_ = GameStatus.WHITE_PLAYER_WON;
+            }
+        }
+    }
+
+    function isTurnWon(Move lastMove) internal constant returns(bool) {
+        return (
+            maxRow(lastMove, 1,  0) + maxRow(lastMove, -1,  0) >= 4 || // horizontal
+            maxRow(lastMove, 0,  1) + maxRow(lastMove,  0, -1) >= 4 || // vertical
+            maxRow(lastMove, 1,  1) + maxRow(lastMove, -1, -1) >= 4 || // main diag
+            maxRow(lastMove, 1, -1) + maxRow(lastMove, -1,  1) >= 4    // secondary diag
+        );
+    }
+
+    function maxRow(Move lastMove, int8 rowSign, int8 columnSign) internal constant returns(uint8) {
+        Cell targetCell = board_[lastMove.row][lastMove.column];
+        uint8 maxRowValue = 0;
+        for (int8 i = 1; i < 5; i++) {
+            int8 row = int8(lastMove.row)    + i * rowSign;
+            int8 col = int8(lastMove.column) + i * columnSign;
+            if (int8(0) <= row && row < 15 && int8(0) <= col && col < 15 && board_[uint(row)][uint(col)] == targetCell) {
+                maxRowValue++;
+            } else {
+                return maxRowValue;
+            }
+        } 
     }
 }
