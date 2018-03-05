@@ -5,19 +5,25 @@ from web3.contract import ConciseContract
 
 class Interceptor:
     def __init__(self, contract, user_address) -> None:
+        self.run_in_transaction = True
         self._contract = contract
         self._user_address = user_address
 
-    def __getattribute__(self, name: str):
-        if name in ('_contract', '_user_address', 'locally'):
-            return object.__getattribute__(self, name)
+    def __getattr__(self, name: str):
         attr = self._contract.__getattr__(name)
         if hasattr(attr, '__call__'):
-            return lambda *args, **kwargs: attr(*args, transact={'from': self._user_address})
+            mode = 'transact' if self.run_in_transaction else 'call'
+            my_kwarg = {mode: {'from': self._user_address}}
+            return lambda *args, **kwargs: attr(*args, **my_kwarg)
         return attr
 
-    def locally(self):
-        return self._contract
+    def call(self):
+        self.run_in_transaction = False
+        return self
+
+    def transact(self):
+        self.run_in_transaction = True
+        return self
 
 class EthereumClient:
     def __init__(self, ethereum_url, user_address) -> None:
@@ -28,7 +34,7 @@ class EthereumClient:
     def upload_new_erenju_contract(self) -> (str, ConciseContract):
         contract = self.w3.eth.contract(abi=self.contract_interface['abi'], bytecode=self.contract_interface['bin'])
         # TODO: support user authentication
-        tx_hash = contract.deploy(transaction={'from': self.user_address, 'gas': 4100000}) # TODO: use self.user_address in 'from'
+        tx_hash = contract.deploy(transaction={'from': self.user_address, 'gas': 4100000})
         tx_receipt = self._tx_receipt(tx_hash)
         contract_address = tx_receipt['contractAddress']
         contract_instance = self.w3.eth.contract(

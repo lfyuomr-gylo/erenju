@@ -181,7 +181,7 @@ contract Renju {
     function isMyTurn() public constant returns (bool) {
         return (gameStatus_ == GameStatus.IN_PROGRESS) && (
             (nextTurnPlayer_ == Player.BLACK  && msg.sender == blackPlayer_) ||
-            (nextTurnPlayer_ == Player.WHITE && msg.sender == whitePlayer_)
+            (nextTurnPlayer_ == Player.WHITE &&  msg.sender == whitePlayer_)
         );
     }
 

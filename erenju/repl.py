@@ -93,7 +93,7 @@ class Repl:
 
     def _on_join_game(self, game_address: str):
         self._contract = self._eth_client.contract_by_address(game_address)
-        self._contract.joinTheGame()
+        self._contract.transact().joinTheGame()
         print("Successfully joined to the game.")
         self._print_board()
 
@@ -104,7 +104,7 @@ class Repl:
 
     def _on_move(self, move: str):
         line, column = self._parse_move(move)
-        self._contract.makeMove(line, column)
+        self._contract.transact().makeMove(line, column)
         print("Done.")
         self._print_board()
 
@@ -116,23 +116,23 @@ class Repl:
             color_is_black = False
         else:
             raise ValueError("Malformed color {}", color)
-        self._contract.pickColor(color_is_black)
+        self._contract.transact().pickColor(color_is_black)
         print("Done.")
 
     def _on_suggest(self, options: str):
         (line1, column1), (line2, column2) = \
             map(self._parse_move, map(str.strip, options.split(' ')))
-        self._contract.suggestFifthMove(line1, column1, line2, column2)
+        self._contract.transact().suggestFifthMove(line1, column1, line2, column2)
         print("Done.")
 
     def _on_select(self, move: str):
         line, column = self._parse_move(move)
-        self._contract.selectFifthMove(line, column)
+        self._contract.transact().selectFifthMove(line, column)
         print("Done.")
         self._print_board()
 
     def _on_pass(self, _: str):
-        self._contract.passTurn()
+        self._contract.transact().passTurn()
 
     def _on_refresh(self, _: str):
         self._print_board()
@@ -154,7 +154,7 @@ class Repl:
         return (15 - line), column
 
     def _print_board(self):
-        my_turn = self._contract.locally().isMyTurn()
+        my_turn = self._contract.call().isMyTurn()
         if my_turn:
             print("It's your turn")
         else:
@@ -164,7 +164,7 @@ class Repl:
         for line in range(15, 0, -1):
             print(line, end=' ' if line >= 10 else '  ') # print two spaces to align the first column
             for column in range(15):
-                cell_number = self._contract.locally().cellAt(15 - line, column)
+                cell_number = self._contract.call().cellAt(15 - line, column)
                 cell_letter = None
                 if cell_number == 0:
                     cell_letter = 'O'
