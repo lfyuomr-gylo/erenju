@@ -302,8 +302,9 @@ contract Renju {
             if (int8(0) <= row && row < 15 && int8(0) <= col && col < 15 && board_[uint(row)][uint(col)] == targetCell) {
                 maxRowValue++;
             } else {
-                return maxRowValue;
+                break;
             }
-        } 
+        }
+        return maxRowValue;
     }
 }
